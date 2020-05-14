@@ -1,0 +1,50 @@
+import GetOldTweets3 as got
+import pandas as pd
+from textblob import TextBlob
+import numpy as np
+import re
+
+# create a function to analyse and extract twitter information into a pandas df
+class TweetAnalyzer():
+    """
+    Functionality for analyzing and categorizing content from tweets.
+    """
+
+    def clean_tweet(self, tweet):
+        return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+
+    def analyze_sentiment(self, tweet):
+        analysis = TextBlob(self.clean_tweet(tweet))
+
+        if analysis.sentiment.polarity > 0:
+            return 1
+        elif analysis.sentiment.polarity == 0:
+            return 0
+        else:
+            return -1
+
+def get_twitter_info():
+    tweet_df["tweet_text"] = tweet_df["got_criteria"].apply(lambda x: x.text)
+    tweet_df["date"] = tweet_df["got_criteria"].apply(lambda x: x.date)
+    tweet_df["location"] = tweet_df["got_criteria"].apply(lambda x: x.geo)
+    
+    
+ #set keyword, location and search variables
+keyword = str("American Express" or "Amex")
+oldest_date = "2019-11-01"    
+newest_date = "2020-01-31"
+number_tweets = 150
+language= "en"
+tweet_criteria = got.manager.TweetCriteria().setQuerySearch(keyword)\
+                                            .setSince(oldest_date)\
+                                            .setUntil(newest_date)\
+                                            .setMaxTweets(number_tweets)\
+                                            .setLang(language)
+#extract twitter information
+tweet_analyzer = TweetAnalyzer()
+tweet_df = pd.DataFrame({'got_criteria':got.manager.TweetManager.getTweets(tweet_criteria)})
+get_twitter_info()
+tweet_df = tweet_df.drop("got_criteria", 1)
+tweet_df['sentiment'] = np.array([tweet_analyzer.analyze_sentiment(tweet) for tweet in tweet_df['tweet_text']])
+#export
+tweet_df.to_csv("New_Amex_Trial.csv")
